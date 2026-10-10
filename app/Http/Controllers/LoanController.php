@@ -94,7 +94,7 @@ class LoanController extends Controller
             ]);
         }
 
-        $now = Carbon::now('UTC');
+        $now = $request->filled('loaned_at') ? Carbon::parse($request->input('loaned_at'), 'UTC') : Carbon::now('UTC');
 
         // CA-06.5: Member with overdue items cannot borrow
         $hasOverdue = LoanItem::whereHas('loan', fn($q) => $q->where('member_id', $member->id))
