@@ -9,6 +9,18 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function index()
+    {
+        $users = User::select('id', 'username', 'role', 'created_at')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'items' => $users,
+            'total' => $users->count()
+        ]);
+    }
+
     public function store(Request $request)
     {
         $role = $request->input('role');

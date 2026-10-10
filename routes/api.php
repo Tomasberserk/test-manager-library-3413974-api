@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
 
         // Admin-only operations
         Route::middleware('jwt.auth:admin')->group(function () {
+            Route::get('/users', [UserController::class, 'index']);
             Route::post('/users', [UserController::class, 'store']);
 
             Route::post('/books', [BookController::class, 'store']);
