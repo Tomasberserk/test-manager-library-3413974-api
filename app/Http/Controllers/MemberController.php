@@ -30,16 +30,23 @@ class MemberController extends Controller
             ->take($size)
             ->get();
 
-        $items = $members->map(function ($m) {
+        $now = \Carbon\Carbon::now('UTC');
+        $items = $members->map(function ($m) use ($now) {
             $activeLoans = LoanItem::whereHas('loan', fn($q) => $q->where('member_id', $m->id))
                 ->whereNull('returned_at')
                 ->count();
+
+            $hasOverdue = LoanItem::whereHas('loan', fn($q) => $q->where('member_id', $m->id))
+                ->whereNull('returned_at')
+                ->where('due_at', '<', $now)
+                ->exists();
 
             return [
                 'id' => (string) $m->id,
                 'full_name' => $m->full_name,
                 'document_number' => $m->document_number,
                 'active_loans' => $activeLoans,
+                'has_overdue' => $hasOverdue,
             ];
         });
 
@@ -58,15 +65,22 @@ class MemberController extends Controller
             throw new BusinessException('NOT_FOUND', 'Socio no encontrado.', 404);
         }
 
+        $now = \Carbon\Carbon::now('UTC');
         $activeLoans = LoanItem::whereHas('loan', fn($q) => $q->where('member_id', $id))
             ->whereNull('returned_at')
             ->count();
+
+        $hasOverdue = LoanItem::whereHas('loan', fn($q) => $q->where('member_id', $id))
+            ->whereNull('returned_at')
+            ->where('due_at', '<', $now)
+            ->exists();
 
         return response()->json([
             'id' => (string) $member->id,
             'full_name' => $member->full_name,
             'document_number' => $member->document_number,
             'active_loans' => $activeLoans,
+            'has_overdue' => $hasOverdue,
         ], 200);
     }
 
